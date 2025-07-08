@@ -24,10 +24,18 @@ class MyApp extends StatelessWidget {
         builder: (context) {
           final authVM = Provider.of<AuthViewModel>(context, listen: false);
           final router = createRouter(authVM);
+
           return MaterialApp.router(
-            routerConfig: router,
+            title: 'WhatSupply',
             debugShowCheckedModeBanner: false,
-            title: 'Meu App',
+            routerConfig: router,
+            theme: ThemeData(
+              useMaterial3: true,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFF1C835B),
+                brightness: Brightness.light,
+              ),
+            ),
           );
         },
       ),

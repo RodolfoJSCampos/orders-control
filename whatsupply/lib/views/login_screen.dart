@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/auth_view_model.dart';
 
@@ -12,65 +13,145 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  bool isRegisterMode = false;
+
+  void _mostrarModal(BuildContext context) {
+    final String email = 'rodolfojscampos@gmail.com';
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Solicitar Acesso'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Para solicitar acesso ao sistema, envie um email para:'),
+            const SizedBox(height: 8),
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final navigator = Navigator.of(context);
+
+                  navigator.pop();
+
+                  Clipboard.setData(ClipboardData(text: email)).then((_) {
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('E-mail copiado para a área de transferência.'),
+                        duration: Duration(seconds: 3),
+                        showCloseIcon: true,
+                      ),
+                    );
+                  });
+                },
+                child: Text(
+                  email,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fechar'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final authVM = Provider.of<AuthViewModel>(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(isRegisterMode ? 'Criar Conta' : 'Entrar')),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                if (authVM.error != null)
-                  Text(authVM.error!, style: TextStyle(color: Colors.red)),
-                TextField(
-                  controller: emailController,
-                  decoration: InputDecoration(labelText: 'E-mail'),
-                ),
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(labelText: 'Senha'),
-                ),
-                const SizedBox(height: 20),
-                authVM.isLoading
-                    ? CircularProgressIndicator()
-                    : Column(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(0.0),
+        child: Container(),
+      ),
+      body: Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 400,
+              height: 400,
+              child: Card.outlined(
+                elevation: 20,
+                child: Padding(
+                  padding: const EdgeInsets.all(25),
+                  child: Center(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        spacing: 10,
                         children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              final email = emailController.text.trim();
-                              final senha = passwordController.text.trim();
+                          Text('Entrar',
+                              style: TextStyle(
+                                fontSize: 25,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              )),
+                          TextField(
+                            controller: emailController,
+                            decoration: InputDecoration(
+                              labelText: 'E-mail',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          TextField(
+                            controller: passwordController,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              labelText: 'Senha',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          authVM.isLoading
+                              ? CircularProgressIndicator()
+                              : Column(
+                                children: [
+                                  FilledButton(
+                                    style: FilledButton.styleFrom(
+                                      minimumSize: Size(double.infinity, 45),
+                                    ),
+                                    onPressed: () {
+                                      final email = emailController.text.trim();
+                                      final senha =
+                                          passwordController.text.trim();
 
-                              authVM.loginWithEmail(email, senha);
-                              
-                            },
-                            child: Text(isRegisterMode ? 'Cadastrar' : 'Entrar'),
-                          ),
-                          OutlinedButton(
-                            onPressed: authVM.loginWithGoogle,
-                            child: Text('Entrar com Google'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                isRegisterMode = !isRegisterMode;
-                              });
-                            },
-                            child: Text(isRegisterMode
-                                ? 'Já tem uma conta? Entrar'
-                                : 'Não tem conta? Cadastrar'),
-                          ),
+                                      authVM.loginWithEmail(email, senha);
+                                    },
+                                    child: Text('Entrar'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => _mostrarModal(context),
+                                    child: Text('Não tem conta? Cadastrar',
+                                    ),
+                                  ),
+                                  SizedBox(height: 40),
+                                  IconButton(
+                                    onPressed: authVM.loginWithGoogle,
+                                    icon: Image.asset(
+                                      'assets/images/continue_with_google_button.png',
+                                    ),
+                                  ),
+                                ],
+                              ),
                         ],
                       ),
-              ],
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
