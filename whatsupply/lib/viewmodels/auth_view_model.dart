@@ -13,10 +13,20 @@ class AuthViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  Stream<User?> get authStateChanges => FirebaseAuth.instance.authStateChanges();
+
+  AuthViewModel() {
+    // Observa mudanças no estado de autenticação
+    FirebaseAuth.instance.authStateChanges().listen((user) {
+      _user = user;
+      notifyListeners(); // Isso vai acionar o GoRouter
+    });
+  }
+
   Future<void> loginWithEmail(String email, String password) async {
     _setLoading(true);
     try {
-      _user = await _authService.loginWithEmail(email, password);
+      await _authService.loginWithEmail(email, password);
       _error = null;
     } catch (e) {
       _error = 'Erro ao fazer login: ${e.toString()}';
@@ -27,7 +37,7 @@ class AuthViewModel extends ChangeNotifier {
   Future<void> loginWithGoogle() async {
     _setLoading(true);
     try {
-      _user = await _authService.loginWithGoogle();
+      await _authService.loginWithGoogle();
       _error = null;
     } catch (e) {
       _error = 'Erro ao fazer login com Google: ${e.toString()}';
@@ -35,21 +45,9 @@ class AuthViewModel extends ChangeNotifier {
     _setLoading(false);
   }
 
-  Future<void> registerWithEmail(String email, String password) async {
-  _setLoading(true);
-  try {
-    _user = await _authService.registerWithEmail(email, password);
-    _error = null;
-  } catch (e) {
-    _error = 'Erro ao cadastrar: ${e.toString()}';
-  }
-  _setLoading(false);
-  }
-
-  void logout() {
-    _authService.logout();
-    _user = null;
-    notifyListeners();
+  Future<void> logout() async {
+    await _authService.logout();
+    // _user será atualizado automaticamente via authStateChanges
   }
 
   void _setLoading(bool value) {

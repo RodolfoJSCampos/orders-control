@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../viewmodels/auth_view_model.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -45,11 +47,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               final email = emailController.text.trim();
                               final senha = passwordController.text.trim();
 
-                              if (isRegisterMode) {
-                                authVM.registerWithEmail(email, senha);
-                              } else {
-                                authVM.loginWithEmail(email, senha);
-                              }
+                              authVM.loginWithEmail(email, senha);
+                              
                             },
                             child: Text(isRegisterMode ? 'Cadastrar' : 'Entrar'),
                           ),
