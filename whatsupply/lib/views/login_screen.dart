@@ -19,51 +19,56 @@ class _LoginScreenState extends State<LoginScreen> {
 
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Solicitar Acesso'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Para solicitar acesso ao sistema, envie um email para:'),
-            const SizedBox(height: 8),
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () {
-                  final messenger = ScaffoldMessenger.of(context);
-                  final navigator = Navigator.of(context);
+      builder:
+          (_) => AlertDialog(
+            title: const Text('Solicitar Acesso'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Para solicitar acesso ao sistema, envie um email para:',
+                ),
+                const SizedBox(height: 8),
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () {
+                      final messenger = ScaffoldMessenger.of(context);
+                      final navigator = Navigator.of(context);
 
-                  navigator.pop();
+                      navigator.pop();
 
-                  Clipboard.setData(ClipboardData(text: email)).then((_) {
-                    messenger.showSnackBar(
-                      const SnackBar(
-                        content: Text('E-mail copiado para a área de transferência.'),
-                        duration: Duration(seconds: 3),
-                        showCloseIcon: true,
+                      Clipboard.setData(ClipboardData(text: email)).then((_) {
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'E-mail copiado para a área de transferência.',
+                            ),
+                            duration: Duration(seconds: 3),
+                            showCloseIcon: true,
+                          ),
+                        );
+                      });
+                    },
+                    child: Text(
+                      email,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        decoration: TextDecoration.underline,
                       ),
-                    );
-                  });
-                },
-                child: Text(
-                  email,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    decoration: TextDecoration.underline,
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Fechar'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Fechar'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -72,10 +77,6 @@ class _LoginScreenState extends State<LoginScreen> {
     final authVM = Provider.of<AuthViewModel>(context);
 
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(0.0),
-        child: Container(),
-      ),
       body: Center(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -92,12 +93,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Column(
                         spacing: 10,
                         children: [
-                          Text('Entrar',
-                              style: TextStyle(
-                                fontSize: 25,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
-                              )),
+                          Image(image: Image.asset('assets/images/logo.png').image, height: 50),
+                          SizedBox(height: 10),
                           TextField(
                             controller: emailController,
                             decoration: InputDecoration(
@@ -119,7 +116,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                 children: [
                                   FilledButton(
                                     style: FilledButton.styleFrom(
-                                      minimumSize: Size(double.infinity, 45),
+                                      minimumSize: Size(double.infinity, 56),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
                                     ),
                                     onPressed: () {
                                       final email = emailController.text.trim();
@@ -132,10 +132,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   TextButton(
                                     onPressed: () => _mostrarModal(context),
-                                    child: Text('Não tem conta? Cadastrar',
-                                    ),
+                                    child: Text('Não tem conta? Cadastrar'),
                                   ),
-                                  SizedBox(height: 40),
+                                  SizedBox(height: 10),
                                   IconButton(
                                     onPressed: authVM.loginWithGoogle,
                                     icon: Image.asset(
