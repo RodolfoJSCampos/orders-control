@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:whatsupply/viewmodels/theme_view_model.dart';
 import '../viewmodels/auth_view_model.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -75,6 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authVM = Provider.of<AuthViewModel>(context);
+    final themeVM = context.watch<ThemeViewModel>();
 
     return Scaffold(
       body: Center(
@@ -95,6 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         spacing: 10,
                         children: [
                           Image(
+                            color: Theme.of(context).colorScheme.primary,
                             image: Image.asset('assets/images/logo.png').image,
                             height: 50,
                           ),
@@ -141,9 +144,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                   SizedBox(height: 10),
                                   IconButton(
                                     onPressed: authVM.loginWithGoogle,
-                                    icon: Image.asset(
-                                      'assets/images/continue_with_google_button.png',
-                                    ),
+                                    icon:
+                                        themeVM.themeMode == ThemeMode.dark
+                                            ? Image.asset(
+                                              'assets/images/continue_with_google_button_dark.png',
+                                            )
+                                            : Image.asset(
+                                              'assets/images/continue_with_google_button.png',
+                                            ),
                                   ),
                                 ],
                               ),
