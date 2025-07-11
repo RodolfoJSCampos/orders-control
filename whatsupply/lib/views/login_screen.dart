@@ -85,7 +85,8 @@ class _LoginScreenState extends State<LoginScreen> {
               width: 400,
               height: 400,
               child: Card.outlined(
-                elevation: 20,
+                elevation: 8,
+                color: Theme.of(context).colorScheme.surfaceContainer,
                 child: Padding(
                   padding: const EdgeInsets.all(25),
                   child: Center(
@@ -93,7 +94,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Column(
                         spacing: 10,
                         children: [
-                          Image(image: Image.asset('assets/images/logo.png').image, height: 50),
+                          Image(
+                            image: Image.asset('assets/images/logo.png').image,
+                            height: 50,
+                          ),
                           SizedBox(height: 10),
                           TextField(
                             controller: emailController,

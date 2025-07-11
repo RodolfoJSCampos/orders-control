@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../viewmodels/auth_view_model.dart';
@@ -17,8 +18,8 @@ GoRouter createRouter(AuthViewModel authVM) {
       return null;
     },
     routes: [
-      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-      GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+      GoRoute(path: '/login', pageBuilder: (context, state) => const MaterialPage(child: LoginScreen())),
+      GoRoute(path: '/home', pageBuilder: (context, state) => const MaterialPage(child: HomeScreen()),),
     ],
   );
 }

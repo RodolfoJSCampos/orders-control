@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:whatsupply/viewmodels/navigation_rail_view_model.dart';
+import 'package:whatsupply/viewmodels/navigatioon_view_model.dart';
+import 'package:whatsupply/viewmodels/theme_view_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -8,26 +12,29 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int selectedIndex = 0;
   bool isRailExtended = false;
 
   final List<NavigationRailDestination> destinations = [
     NavigationRailDestination(
+      padding: const EdgeInsets.symmetric(vertical: 5),
       icon: Icon(Icons.home_outlined),
       selectedIcon: Icon(Icons.home),
       label: Text('Home'),
     ),
     NavigationRailDestination(
+      padding: const EdgeInsets.symmetric(vertical: 5),
       icon: Icon(Icons.inventory_2_outlined),
       selectedIcon: Icon(Icons.inventory_2),
       label: Text('Produtos'),
     ),
     NavigationRailDestination(
+      padding: const EdgeInsets.symmetric(vertical: 5),
       icon: Icon(Icons.receipt_long_outlined),
       selectedIcon: Icon(Icons.receipt_long),
       label: Text('Pedidos'),
     ),
     NavigationRailDestination(
+      padding: const EdgeInsets.symmetric(vertical: 5),
       icon: Icon(Icons.contacts_outlined),
       selectedIcon: Icon(Icons.contacts),
       label: Text('Contatos'),
@@ -43,51 +50,47 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final navVM = context.watch<NavigationViewModel>();
     final bool isWide = MediaQuery.of(context).size.width >= 600;
+    final railVM = context.watch<NavigationRailViewModel>();
+    final isRailExtended = railVM.isExtended;
 
     return Scaffold(
       appBar: AppBar(
         leading: Padding(
           padding: EdgeInsets.only(left: 20, top: 10, bottom: 10),
-          child: Image(
-            image: Image.asset('assets/images/icon.png').image,
-          ),
+          child: Image.asset('assets/images/icon.png'),
         ),
         title: Padding(
-          padding:
-              isRailExtended
-                  ? EdgeInsets.only(left: 95)
-                  : EdgeInsets.only(left: 0),
+          padding: isRailExtended ? EdgeInsets.only(left: 95) : EdgeInsets.zero,
           child: Row(
             children: [
-              Padding(
-                padding: EdgeInsets.only(right: 10),
-                child: IconButton(
-                  icon: Icon(
-                    isRailExtended
-                        ? Icons.keyboard_arrow_left
-                        : Icons.keyboard_arrow_right,
-                    color: Colors.grey.shade600,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      isRailExtended = !isRailExtended;
-                    });
-                  },
+              IconButton(
+                icon: Icon(
+                  isRailExtended
+                      ? Icons.keyboard_arrow_left
+                      : Icons.keyboard_arrow_right,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
+                onPressed: () {
+                  context.read<NavigationRailViewModel>().toggle();
+                },
               ),
               SearchBar(
-                overlayColor: WidgetStateProperty.all(
-                  Theme.of(context).colorScheme.onSecondary,
-                ),
                 side: WidgetStateProperty.all(
-                  BorderSide(color: Colors.grey.shade600, width: 1),
+                  BorderSide(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    width: 1,
+                  ),
                 ),
                 textStyle: WidgetStateProperty.all(
-                  TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                  TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 16,
+                  ),
                 ),
                 backgroundColor: WidgetStateProperty.all(
-                  Theme.of(context).colorScheme.onSecondary,
+                  Theme.of(context).colorScheme.surfaceContainer,
                 ),
                 elevation: WidgetStateProperty.all(0),
                 constraints: BoxConstraints(minHeight: 40, maxWidth: 500),
@@ -96,12 +99,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   IconButton(
                     icon: Icon(
                       Icons.tune_outlined,
-                      color: Colors.grey.shade600,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     onPressed: () {},
                   ),
                 ],
-                leading: Icon(Icons.search, color: Colors.grey.shade600),
+                leading: Icon(
+                  Icons.search,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -110,30 +116,36 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Row(
         children: [
           if (isWide)
-            Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  right: BorderSide(color: Colors.grey, width: 0.5),
+            NavigationRail(
+              extended: isRailExtended,
+              minExtendedWidth: 180,
+              selectedIndex: navVM.selectedIndex,
+              onDestinationSelected: navVM.setIndex,
+              labelType:
+                  isRailExtended
+                      ? NavigationRailLabelType.none
+                      : NavigationRailLabelType.all,
+              destinations: destinations,
+              trailing: Expanded(
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: IconButton(
+                      icon: Icon(
+                        Theme.of(context).brightness == Brightness.dark
+                            ? Icons.light_mode
+                            : Icons.dark_mode,
+                      ),
+                      onPressed: () {
+                        context.read<ThemeViewModel>().toggleTheme();
+                      },
+                    ),
+                  ),
                 ),
-              ),
-              child: NavigationRail(
-                selectedIconTheme: IconThemeData(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                extended: isRailExtended,
-                minExtendedWidth: 200,
-                selectedIndex: selectedIndex,
-                onDestinationSelected: (index) {
-                  setState(() => selectedIndex = index);
-                },
-                labelType:
-                    isRailExtended
-                        ? NavigationRailLabelType.none
-                        : NavigationRailLabelType.all,
-                destinations: destinations,
               ),
             ),
-          Expanded(child: pages[selectedIndex]),
+          Expanded(child: pages[navVM.selectedIndex]),
         ],
       ),
     );
