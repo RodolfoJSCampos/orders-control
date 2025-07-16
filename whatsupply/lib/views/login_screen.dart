@@ -156,6 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     label: Text(
                                       'Continuar com Google',
                                       style: TextStyle(
+                                        fontFamily: 'Roboto Medium',
                                         color:
                                             themeVM.themeMode == ThemeMode.dark
                                                 ? Color(0xFFE3E3E3)
