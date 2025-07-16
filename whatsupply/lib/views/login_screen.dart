@@ -135,23 +135,36 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                       authVM.loginWithEmail(email, senha);
                                     },
-                                    child: Text('Entrar'),
+                                    child: Text(
+                                      'Entrar',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ),
                                   TextButton(
                                     onPressed: () => _mostrarModal(context),
                                     child: Text('Não tem conta? Cadastrar'),
                                   ),
-                                  SizedBox(height: 10),
-                                  IconButton(
+                                  SizedBox(height: 15),
+                                  OutlinedButton.icon(
                                     onPressed: authVM.loginWithGoogle,
-                                    icon:
-                                        themeVM.themeMode == ThemeMode.dark
-                                            ? Image.asset(
-                                              'assets/images/continue_with_google_button_dark.png',
-                                            )
-                                            : Image.asset(
-                                              'assets/images/continue_with_google_button.png',
-                                            ),
+                                    icon: Image.asset(
+                                      'assets/images/google_logo.png',
+                                      height: 20,
+                                    ),
+                                    label: Text(
+                                      'Continuar com Google',
+                                      style: TextStyle(
+                                        color:
+                                            themeVM.themeMode == ThemeMode.dark
+                                                ? Color(0xFFE3E3E3)
+                                                : Color(0xFF1F1F1F),
+                                      ),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      minimumSize: Size(0, 50),
+                                    ),
                                   ),
                                 ],
                               ),
