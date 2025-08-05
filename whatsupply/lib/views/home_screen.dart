@@ -3,6 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:whatsupply/viewmodels/navigation_rail_view_model.dart';
 import 'package:whatsupply/viewmodels/navigatioon_view_model.dart';
 import 'package:whatsupply/viewmodels/theme_view_model.dart';
+import 'package:whatsupply/views/home_page.dart';
+
+import 'contatos_page.dart';
+import 'pedidos_page.dart';
+import 'produtos_page.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -41,11 +46,11 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
   ];
 
-  final List<Widget> pages = const [
-    Center(child: Text('Página Home')),
-    Center(child: Text('Página Produtos')),
-    Center(child: Text('Página Pedidos')),
-    Center(child: Text('Página Contatos')),
+  final List<Widget> pages = [
+    HomePage(),
+    ProdutosPage(),
+    PedidosPage(),
+    ContatosPage(),
   ];
 
   @override
