@@ -144,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   TextButton(
                                     onPressed: () => _mostrarModal(context),
-                                    child: Text('Não tem conta? Cadastrar'),
+                                    child: Text('Não tem conta? Cadastre-se'),
                                   ),
                                   SizedBox(height: 15),
                                   OutlinedButton.icon(
