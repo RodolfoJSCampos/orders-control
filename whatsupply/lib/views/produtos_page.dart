@@ -1,8 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:whatsupply/models/product_model.dart';
 import 'package:whatsupply/viewmodels/product_view_model.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 class ProdutosPage extends StatefulWidget {
   const ProdutosPage({super.key});
@@ -15,8 +15,9 @@ class _ProdutosPageState extends State<ProdutosPage> {
   String? _selectedBrand;
   String? _selectedCategory;
 
-  final GlobalKey<PopupMenuButtonState<String>> _brandPopupMenuKey = GlobalKey<PopupMenuButtonState<String>>();
-  final GlobalKey<PopupMenuButtonState<String>> _categoryPopupMenuKey = GlobalKey<PopupMenuButtonState<String>>();
+  // Keys for the filter popup menus
+  final GlobalKey<PopupMenuButtonState<String>> _brandMenuKey = GlobalKey();
+  final GlobalKey<PopupMenuButtonState<String>> _categoryMenuKey = GlobalKey();
 
   @override
   void initState() {
@@ -26,180 +27,36 @@ class _ProdutosPageState extends State<ProdutosPage> {
     });
   }
 
-  void _showAddProductDialog(BuildContext context) {
+  // A single, reusable dialog for adding and editing products.
+  void _showProductDialog({Product? product}) {
+    final isEditing = product != null;
     final formKey = GlobalKey<FormState>();
-    final imageUrlController = TextEditingController();
-    final descriptionController = TextEditingController();
-
-    final List<String> brandOptions = ['Nestlé', 'Mars', 'Ferrero', 'Lacta'];
-    final List<String> categoryOptions = [
-      'Chocolate',
-      'Salgadinho',
-      'Bebida',
-      'Fini',
-    ];
-
-    String? selectedBrand;
-    String? selectedCategory;
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Adicionar Novo Produto'),
-              content: SizedBox(
-                width: 300,
-                height: 250,
-                child: Form(
-                  key: formKey,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      spacing: 15,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        DropdownButtonFormField<String>(
-                          value: selectedCategory,
-                          decoration: const InputDecoration(
-                            labelText: 'Categoria',
-                            border: OutlineInputBorder(),
-                          ),
-                          items:
-                              categoryOptions.map((String category) {
-                                return DropdownMenuItem<String>(
-                                  value: category,
-                                  child: Text(category),
-                                );
-                              }).toList(),
-                          onChanged:
-                              (newValue) =>
-                                  setState(() => selectedCategory = newValue),
-                          validator:
-                              (value) =>
-                                  value == null
-                                      ? 'Selecione uma categoria'
-                                      : null,
-                        ),
-                        DropdownButtonFormField<String>(
-                          value: selectedBrand,
-                          decoration: const InputDecoration(
-                            labelText: 'Marca',
-                            border: OutlineInputBorder(),
-                          ),
-                          items:
-                              brandOptions.map((String brand) {
-                                return DropdownMenuItem<String>(
-                                  value: brand,
-                                  child: Text(brand),
-                                );
-                              }).toList(),
-                          onChanged:
-                              (newValue) =>
-                                  setState(() => selectedBrand = newValue),
-                          validator:
-                              (value) =>
-                                  value == null ? 'Selecione uma marca' : null,
-                        ),
-                        TextFormField(
-                          controller: descriptionController,
-                          decoration: const InputDecoration(
-                            labelText: 'Descrição',
-                            border: OutlineInputBorder(),
-                          ),
-                          validator:
-                              (value) =>
-                                  value == null || value.isEmpty
-                                      ? 'Campo obrigatório'
-                                      : null,
-                        ),
-                        TextFormField(
-                          controller: imageUrlController,
-                          decoration: const InputDecoration(
-                            labelText: 'URL da Imagem',
-                            border: OutlineInputBorder(),
-                          ),
-                          validator:
-                              (value) =>
-                                  value == null || value.isEmpty
-                                      ? 'Campo obrigatório'
-                                      : null,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancelar'),
-                ),
-                OutlinedButton(
-                  onPressed: () async {
-                    if (formKey.currentState?.validate() ?? false) {
-                      final productVM = context.read<ProductViewModel>();
-                      final navigator = Navigator.of(dialogContext);
-                      final messenger = ScaffoldMessenger.of(context);
-
-                      try {
-                        await productVM.addProduct(
-                          imageUrl: imageUrlController.text,
-                          brand: selectedBrand!,
-                          category: selectedCategory!,
-                          description: descriptionController.text,
-                        );
-
-                        navigator.pop();
-                        messenger.showSnackBar(
-                          const SnackBar(
-                            content: Text('Produto adicionado com sucesso!'),
-                          ),
-                        );
-                      } catch (e) {
-                        messenger.showSnackBar(
-                          SnackBar(
-                            content: Text('Erro ao adicionar produto: $e'),
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  child: const Text('Salvar'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+    final imageUrlController = TextEditingController(
+      text: isEditing ? product.imageUrl : '',
     );
-  }
-
-  void _showEditProductDialog(BuildContext context, Product product) {
-    final formKey = GlobalKey<FormState>();
-    final imageUrlController = TextEditingController(text: product.imageUrl);
     final descriptionController = TextEditingController(
-      text: product.description,
+      text: isEditing ? product.description : '',
     );
 
-    final List<String> brandOptions = ['Nestlé', 'Mars', 'Ferrero', 'Lacta'];
-    final List<String> categoryOptions = [
-      'Chocolate',
-      'Salgadinho',
-      'Bebida',
-      'Fini',
-    ];
+    // Hardcoded options, could be fetched from a view model or service.
+    final brandOptions = ['Nestlé', 'Mars', 'Ferrero', 'Lacta', 'Kellogg\'s'];
+    final categoryOptions = ['Chocolate', 'Salgadinho', 'Bebida', 'Fini'];
 
-    String? selectedBrand = product.brand;
-    String? selectedCategory = product.category;
+    String? selectedBrand = isEditing ? product.brand : null;
+    String? selectedCategory = isEditing ? product.category : null;
 
     showDialog(
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setState) {
+            // Helper to create consistent spacing between form fields.
+            const fieldSpacing = SizedBox(height: 15);
+
             return AlertDialog(
-              title: const Text('Editar Produto'),
+              title: Text(
+                isEditing ? 'Editar Produto' : 'Adicionar Novo Produto',
+              ),
               content: SizedBox(
                 width: 300,
                 height: 250,
@@ -207,7 +64,6 @@ class _ProdutosPageState extends State<ProdutosPage> {
                   key: formKey,
                   child: SingleChildScrollView(
                     child: Column(
-                      spacing: 15,
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         DropdownButtonFormField<String>(
@@ -217,21 +73,24 @@ class _ProdutosPageState extends State<ProdutosPage> {
                             border: OutlineInputBorder(),
                           ),
                           items:
-                              categoryOptions.map((String category) {
-                                return DropdownMenuItem<String>(
-                                  value: category,
-                                  child: Text(category),
-                                );
-                              }).toList(),
+                              categoryOptions
+                                  .map(
+                                    (c) => DropdownMenuItem(
+                                      value: c,
+                                      child: Text(c),
+                                    ),
+                                  )
+                                  .toList(),
                           onChanged:
-                              (newValue) =>
-                                  setState(() => selectedCategory = newValue),
+                              (value) =>
+                                  setState(() => selectedCategory = value),
                           validator:
                               (value) =>
                                   value == null
                                       ? 'Selecione uma categoria'
                                       : null,
                         ),
+                        fieldSpacing,
                         DropdownButtonFormField<String>(
                           value: selectedBrand,
                           decoration: const InputDecoration(
@@ -239,19 +98,21 @@ class _ProdutosPageState extends State<ProdutosPage> {
                             border: OutlineInputBorder(),
                           ),
                           items:
-                              brandOptions.map((String brand) {
-                                return DropdownMenuItem<String>(
-                                  value: brand,
-                                  child: Text(brand),
-                                );
-                              }).toList(),
+                              brandOptions
+                                  .map(
+                                    (b) => DropdownMenuItem(
+                                      value: b,
+                                      child: Text(b),
+                                    ),
+                                  )
+                                  .toList(),
                           onChanged:
-                              (newValue) =>
-                                  setState(() => selectedBrand = newValue),
+                              (value) => setState(() => selectedBrand = value),
                           validator:
                               (value) =>
                                   value == null ? 'Selecione uma marca' : null,
                         ),
+                        fieldSpacing,
                         TextFormField(
                           controller: descriptionController,
                           decoration: const InputDecoration(
@@ -260,10 +121,11 @@ class _ProdutosPageState extends State<ProdutosPage> {
                           ),
                           validator:
                               (value) =>
-                                  value == null || value.isEmpty
+                                  (value == null || value.isEmpty)
                                       ? 'Campo obrigatório'
                                       : null,
                         ),
+                        fieldSpacing,
                         TextFormField(
                           controller: imageUrlController,
                           decoration: const InputDecoration(
@@ -272,7 +134,7 @@ class _ProdutosPageState extends State<ProdutosPage> {
                           ),
                           validator:
                               (value) =>
-                                  value == null || value.isEmpty
+                                  (value == null || value.isEmpty)
                                       ? 'Campo obrigatório'
                                       : null,
                         ),
@@ -288,12 +150,23 @@ class _ProdutosPageState extends State<ProdutosPage> {
                 ),
                 OutlinedButton(
                   onPressed: () async {
-                    if (formKey.currentState?.validate() ?? false) {
-                      final productVM = context.read<ProductViewModel>();
-                      final navigator = Navigator.of(dialogContext);
-                      final messenger = ScaffoldMessenger.of(context);
+                    if (!(formKey.currentState?.validate() ?? false)) return;
 
-                      try {
+                    final productVM = context.read<ProductViewModel>();
+                    final messenger = ScaffoldMessenger.of(context);
+                    final navigator = Navigator.of(dialogContext);
+
+                    final successMessage =
+                        isEditing
+                            ? 'Produto atualizado com sucesso!'
+                            : 'Produto adicionado com sucesso!';
+                    final errorMessage =
+                        isEditing
+                            ? 'Erro ao atualizar produto'
+                            : 'Erro ao adicionar produto';
+
+                    try {
+                      if (isEditing) {
                         await productVM.updateProduct(
                           productId: product.id,
                           imageUrl: imageUrlController.text,
@@ -301,23 +174,25 @@ class _ProdutosPageState extends State<ProdutosPage> {
                           category: selectedCategory!,
                           description: descriptionController.text,
                         );
-
-                        navigator.pop();
-                        messenger.showSnackBar(
-                          const SnackBar(
-                            content: Text('Produto atualizado com sucesso!'),
-                          ),
-                        );
-                      } catch (e) {
-                        messenger.showSnackBar(
-                          SnackBar(
-                            content: Text('Erro ao atualizar produto: $e'),
-                          ),
+                      } else {
+                        await productVM.addProduct(
+                          imageUrl: imageUrlController.text,
+                          brand: selectedBrand!,
+                          category: selectedCategory!,
+                          description: descriptionController.text,
                         );
                       }
+                      navigator.pop();
+                      messenger.showSnackBar(
+                        SnackBar(content: Text(successMessage)),
+                      );
+                    } catch (e) {
+                      messenger.showSnackBar(
+                        SnackBar(content: Text('$errorMessage: $e')),
+                      );
                     }
                   },
-                  child: const Text('Salvar Alterações'),
+                  child: Text(isEditing ? 'Salvar Alterações' : 'Salvar'),
                 ),
               ],
             );
@@ -327,74 +202,165 @@ class _ProdutosPageState extends State<ProdutosPage> {
     );
   }
 
+  // Shows a confirmation dialog before deleting a product.
+  void _showDeleteConfirmationDialog(BuildContext context, Product product) {
+    showDialog(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: const Text('Confirmar Exclusão'),
+            content: const Text(
+              'Tem certeza de que deseja excluir este produto?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancelar'),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  final productVM = context.read<ProductViewModel>();
+                  final messenger = ScaffoldMessenger.of(context);
+                  Navigator.pop(
+                    dialogContext,
+                  ); // Close the confirmation dialog first.
+
+                  try {
+                    await productVM.deleteProduct(product.id);
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('Produto excluído com sucesso!'),
+                      ),
+                    );
+                  } catch (e) {
+                    messenger.showSnackBar(
+                      SnackBar(content: Text('Erro ao excluir produto: $e')),
+                    );
+                  }
+                },
+                child: const Text('Excluir'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  // New method to show product details in a modal
+  void _showProductDetailsDialog(BuildContext context, Product product) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(product.description),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              Text('Marca: ${product.brand}'),
+              Text('Categoria: ${product.category}'),
+              Text('SKU: ${product.sku}'),
+              // Add more product details here as needed
+              if (product.imageUrl.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10.0),
+                  child: CachedNetworkImage(
+                    imageUrl: product.imageUrl,
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => const CircularProgressIndicator(),
+                    errorWidget: (context, url, error) => const Icon(Icons.error),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+            },
+            child: const Text('Fechar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // A helper widget to build the filter buttons, reducing code duplication.
+  Widget _buildFilterButton({
+    required GlobalKey<PopupMenuButtonState<String>> menuKey,
+    required String hint,
+    required String? selectedValue,
+    required List<String> items,
+    required ValueChanged<String?> onSelected,
+  }) {
+    final uniqueItems = ['Todas', ...items.toSet()];
+    return PopupMenuButton<String>(
+      key: menuKey,
+      onSelected: (value) {
+        onSelected(value.toLowerCase() == 'todas' ? null : value);
+      },
+      itemBuilder:
+          (context) =>
+              uniqueItems
+                  .map((item) => PopupMenuItem(value: item, child: Text(item)))
+                  .toList(),
+      child: OutlinedButton.icon(
+        onPressed: () => menuKey.currentState?.showButtonMenu(),
+        icon: const Icon(Icons.arrow_drop_down),
+        label: Text(selectedValue ?? hint),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final productVM = context.watch<ProductViewModel>();
+
+    final filteredProducts =
+        productVM.products.where((product) {
+          final brandMatch =
+              _selectedBrand == null ||
+              product.brand.toLowerCase() == _selectedBrand!.toLowerCase();
+          final categoryMatch =
+              _selectedCategory == null ||
+              product.category.toLowerCase() ==
+                  _selectedCategory!.toLowerCase();
+          return brandMatch && categoryMatch;
+        }).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          margin: const EdgeInsets.fromLTRB(15, 15, 15, 0),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Lista de Produtos', style: TextStyle(fontSize: 24)),
+              const Text('Lista de Produtos', style: TextStyle(fontSize: 24)),
               Row(
-                spacing: 10,
                 children: [
-                  PopupMenuButton<String>(
-                    key: _brandPopupMenuKey,
-                    onSelected: (String value) {
-                      setState(() {
-                        _selectedBrand = value.trim().toLowerCase() == 'todos' ? null : value.trim().toLowerCase();
-                      });
-                    },
-                    itemBuilder: (BuildContext context) {
-                      final brands = [
-                        'Todos',
-                        ...context.read<ProductViewModel>().products.map((p) => p.brand).toSet()
-                      ];
-                      return brands.map((String brand) {
-                        return PopupMenuItem<String>(
-                          value: brand,
-                          child: Text(brand),
-                        );
-                      }).toList();
-                    },
-                    child: OutlinedButton.icon(
-                      onPressed: () => _brandPopupMenuKey.currentState?.showButtonMenu(),
-                      icon: Icon(Icons.arrow_drop_down),
-                      label: Text(_selectedBrand ?? 'Marca'),
-                    ),
+                  _buildFilterButton(
+                    menuKey: _brandMenuKey,
+                    hint: 'Marca',
+                    selectedValue: _selectedBrand,
+                    items: productVM.products.map((p) => p.brand).toList(),
+                    onSelected:
+                        (value) => setState(() => _selectedBrand = value),
                   ),
-                  PopupMenuButton<String>(
-                    key: _categoryPopupMenuKey,
-                    onSelected: (String value) {
-                      setState(() {
-                        _selectedCategory = value.trim().toLowerCase() == 'todas' ? null : value.trim().toLowerCase();
-                      });
-                    },
-                    itemBuilder: (BuildContext context) {
-                      final categories = [
-                        'Todas',
-                        ...context.read<ProductViewModel>().products.map((p) => p.category).toSet()
-                      ];
-                      return categories.map((String category) {
-                        return PopupMenuItem<String>(
-                          value: category,
-                          child: Text(category),
-                        );
-                      }).toList();
-                    },
-                    child: OutlinedButton.icon(
-                      onPressed: () => _categoryPopupMenuKey.currentState?.showButtonMenu(),
-                      icon: Icon(Icons.arrow_drop_down),
-                      label: Text(_selectedCategory ?? 'Categoria'),
-                    ),
+                  const SizedBox(width: 10),
+                  _buildFilterButton(
+                    menuKey: _categoryMenuKey,
+                    hint: 'Categoria',
+                    selectedValue: _selectedCategory,
+                    items: productVM.products.map((p) => p.category).toList(),
+                    onSelected:
+                        (value) => setState(() => _selectedCategory = value),
                   ),
+                  const SizedBox(width: 10),
                   FilledButton.icon(
-                    onPressed: () => _showAddProductDialog(context),
-                    icon: Icon(Icons.add, size: 24),
-                    label: Text('Adicionar'),
+                    onPressed: () => _showProductDialog(),
+                    icon: const Icon(Icons.add, size: 24),
+                    label: const Text('Adicionar'),
                   ),
                 ],
               ),
@@ -403,130 +369,188 @@ class _ProdutosPageState extends State<ProdutosPage> {
         ),
         Expanded(
           child: Container(
-            margin: const EdgeInsets.fromLTRB(15, 15, 15, 15),
+            margin: const EdgeInsets.all(15),
             decoration: BoxDecoration(
               border: Border.all(color: Theme.of(context).colorScheme.outline),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Consumer<ProductViewModel>(
-              builder: (context, productVM, child) {
-                if (productVM.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final filteredProducts = productVM.products.where((product) {
-                  final brandMatch = _selectedBrand == null || product.brand.trim().toLowerCase() == _selectedBrand!.trim().toLowerCase();
-                  final categoryMatch = _selectedCategory == null || (product.category.trim().toLowerCase() == _selectedCategory!.trim().toLowerCase());
-                  return brandMatch && categoryMatch;
-                }).toList();
-
-                if (filteredProducts.isEmpty) {
-                  return const Center(
-                    child: Text('Nenhum produto encontrado.'),
-                  );
-                }
-
-                return ListView.builder(
-                  itemCount: filteredProducts.length,
-                  itemBuilder: (context, index) {
-                    final product = filteredProducts[index];
-                    return ListTile(
-                      leading:
-                          product.imageUrl.isNotEmpty
-                              ? ClipOval(
-                                  child: CachedNetworkImage(
-                                    imageUrl: product.imageUrl,
-                                    width: 50,
-                                    height: 50,
-                                    fit: BoxFit.cover,
-                                    placeholder: (context, url) =>
-                                        const CircularProgressIndicator(),
-                                    errorWidget: (context, url, error) {
-                                      return const Icon(Icons.error);
-                                    },
-                                  ),
-                                )
-                              : const Icon(Icons.image_not_supported, size: 50),
-                      title: Text(product.description),
-                      subtitle: Text(
-                        'Marca: ${product.brand} | Categoria: ${product.category} | SKU: ${product.sku}',
-                      ),
-                      trailing: PopupMenuButton<String>(
-                        onSelected: (value) {
-                          if (value == 'editar') {
-                            _showEditProductDialog(context, product);
-                          } else if (value == 'excluir') {
-                            showDialog(
-                              context: context,
-                              builder:
-                                  (dialogContext) => AlertDialog(
-                                    title: const Text('Confirmar Exclusão'),
-                                    content: const Text(
-                                      'Tem certeza de que deseja excluir este produto?',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.pop(dialogContext),
-                                        child: const Text('Cancelar'),
+            child:
+                productVM.isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : filteredProducts.isEmpty
+                    ? const Center(child: Text('Nenhum produto encontrado.'))
+                    : SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                          dataRowHeight: 60.0,
+                          columns: const [
+                          DataColumn(label: Text('Imagem')),
+                          DataColumn(label: Text('Descrição')),
+                          DataColumn(label: Text('Marca')),
+                          DataColumn(label: Text('Categoria')),
+                          DataColumn(label: Text('SKU')),
+                          DataColumn(label: Text('Menor Preço')),
+                          DataColumn(label: Text('Último Preço')),
+                          DataColumn(label: Text('Ações')),
+                        ],
+                        rows:
+                            filteredProducts.map((product) {
+                              return DataRow(
+                                onSelectChanged: (isSelected) {
+                                  if (isSelected ?? false) {
+                                    _showProductDetailsDialog(context, product);
+                                  }
+                                },
+                                cells: [
+                                  DataCell(
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 5.0,
                                       ),
-                                      FilledButton(
-                                        onPressed: () async {
-                                          final productVM =
-                                              context.read<ProductViewModel>();
-                                          final messenger =
-                                              ScaffoldMessenger.of(context);
-                                          Navigator.pop(dialogContext);
-
-                                          try {
-                                            await productVM.deleteProduct(
-                                              product.id,
-                                            );
-                                            messenger.showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  'Produto excluído com sucesso!',
+                                      child:
+                                          product.imageUrl.isNotEmpty
+                                              ? CachedNetworkImage(
+                                                imageUrl: product.imageUrl,
+                                                width: 50,
+                                                height: 50,
+                                                fit: BoxFit.cover,
+                                                placeholder:
+                                                    (context, url) =>
+                                                        const CircularProgressIndicator(),
+                                                errorWidget:
+                                                    (context, url, error) =>
+                                                        const Icon(Icons.error),
+                                              )
+                                              : SizedBox(
+                                                width: 50,
+                                                height: 50,
+                                                child: Icon(
+                                                  Icons.image_not_supported,
+                                                  size: 50,
                                                 ),
                                               ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 5.0,
+                                      ),
+                                      child: Text(product.description),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 5.0,
+                                      ),
+                                      child: Text(product.brand),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 5.0,
+                                      ),
+                                      child: Text(product.category),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 5.0,
+                                      ),
+                                      child: Text(product.sku),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 5.0,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: const [
+                                          Text(
+                                            'Fornecedor A',
+                                            style: TextStyle(fontSize: 10.0),
+                                          ),
+                                          Text(
+                                            'R\$ 10,00',
+                                            style: TextStyle(fontWeight: FontWeight.bold),
+                                          ),
+                                          Text(
+                                            '07/08/2025',
+                                            style: TextStyle(fontSize: 10.0),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 5.0,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: const [
+                                          Text(
+                                            'Fornecedor B',
+                                            style: TextStyle(fontSize: 10.0),
+                                          ),
+                                          Text(
+                                            'R\$ 12,00',
+                                            style: TextStyle(fontWeight: FontWeight.bold),
+                                          ),
+                                          Text(
+                                            '07/08/2025',
+                                            style: TextStyle(fontSize: 10.0),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 5.0,
+                                      ),
+                                      child: PopupMenuButton<String>(
+                                        onSelected: (value) {
+                                          if (value == 'editar') {
+                                            _showProductDialog(
+                                              product: product,
                                             );
-                                          } catch (e) {
-                                            messenger.showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  'Erro ao excluir produto: $e',
-                                                ),
-                                              ),
+                                          } else if (value == 'excluir') {
+                                            _showDeleteConfirmationDialog(
+                                              context,
+                                              product,
                                             );
                                           }
                                         },
-                                        child: const Text('Excluir'),
+                                        itemBuilder:
+                                            (context) => [
+                                              const PopupMenuItem(
+                                                value: 'editar',
+                                                child: Text('Editar'),
+                                              ),
+                                              const PopupMenuItem(
+                                                value: 'excluir',
+                                                child: Text('Excluir'),
+                                              ),
+                                            ],
                                       ),
-                                    ],
+                                    ),
                                   ),
-                            );
-                          }
-                        },
-                        itemBuilder:
-                            (context) => [
-                              const PopupMenuItem(
-                                value: 'editar',
-                                child: Text('Editar'),
-                              ),
-                              const PopupMenuItem(
-                                value: 'excluir',
-                                child: Text('Excluir'),
-                              ),
-                            ],
+                                ],
+                              );
+                            }).toList(),
                       ),
-                    );
-                  },
-                );
-              },
-            ),
+                    ),
           ),
         ),
       ],
     );
   }
 }
-
