@@ -5,11 +5,16 @@ class AuthService {
 
   /// Login com email e senha
   Future<User?> loginWithEmail(String email, String password) async {
-    final result = await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    return result.user;
+    try {
+      final result = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return result.user;
+    } catch (e) {
+      // Garante que qualquer exceção seja propagada para a camada superior (ViewModel).
+      rethrow;
+    }
   }
 
   /// Cadastro de novo usuário com email e senha
@@ -30,7 +35,8 @@ class AuthService {
 
       return result.user;
     } catch (e) {
-      throw Exception("Erro no login com Google: $e");
+      // Propaga a exceção original para manter o tipo e o stack trace.
+      rethrow;
     }
   }
 

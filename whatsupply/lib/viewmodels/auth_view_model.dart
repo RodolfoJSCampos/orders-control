@@ -28,10 +28,21 @@ class AuthViewModel extends ChangeNotifier {
     try {
       await _authService.loginWithEmail(email, password);
       _error = null;
+    } on FirebaseAuthException catch (e) {
+      // Se o usuário cancelou o login, não tratamos como um erro que precisa ser exibido.
+      // Apenas interrompemos o processo. O 'finally' cuidará do estado de loading.
+      if (e.code == 'popup-closed-by-user' || e.code == 'cancelled-popup-request') {
+        return; // Sai silenciosamente, sem propagar erro.
+      }
+      // Para outros erros reais do Firebase, propagamos para a UI.
+      _error = 'Erro ao fazer login com Google: ${e.toString()}';
+      rethrow;
     } catch (e) {
       _error = 'Erro ao fazer login: ${e.toString()}';
+      rethrow;
+    } finally {
+      _setLoading(false);
     }
-    _setLoading(false);
   }
 
   Future<void> loginWithGoogle() async {
@@ -39,10 +50,21 @@ class AuthViewModel extends ChangeNotifier {
     try {
       await _authService.loginWithGoogle();
       _error = null;
+    } on FirebaseAuthException catch (e) {
+      // Se o usuário cancelou o login, não tratamos como um erro que precisa ser exibido.
+      // Apenas interrompemos o processo. O 'finally' cuidará do estado de loading.
+      if (e.code == 'popup-closed-by-user' || e.code == 'cancelled-popup-request') {
+        return; // Sai silenciosamente, sem propagar erro.
+      }
+      // Para outros erros reais do Firebase, propagamos para a UI.
+      _error = 'Erro ao fazer login com Google: ${e.toString()}';
+      rethrow;
     } catch (e) {
       _error = 'Erro ao fazer login com Google: ${e.toString()}';
+      rethrow;
+    } finally {
+      _setLoading(false);
     }
-    _setLoading(false);
   }
 
   Future<void> logout() async {
