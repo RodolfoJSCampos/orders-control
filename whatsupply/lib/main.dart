@@ -6,6 +6,9 @@ import 'package:whatsupply/viewmodels/auth_view_model.dart';
 import 'package:whatsupply/viewmodels/navigation_rail_view_model.dart';
 import 'package:whatsupply/viewmodels/navigation_view_model.dart';
 import 'package:whatsupply/viewmodels/product_view_model.dart';
+import 'package:whatsupply/viewmodels/contact_view_model.dart';
+import 'package:whatsupply/viewmodels/brand_view_model.dart';
+import 'package:whatsupply/viewmodels/category_view_model.dart';
 import 'package:whatsupply/viewmodels/theme_view_model.dart';
 
 import 'firebase_options.dart';
@@ -56,6 +59,9 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (_) => NavigationViewModel()),
         ChangeNotifierProvider(create: (_) => NavigationRailViewModel()),
         ChangeNotifierProvider(create: (_) => ProductViewModel()),
+        ChangeNotifierProvider(create: (_) => BrandViewModel()),
+        ChangeNotifierProvider(create: (_) => CategoryViewModel()),
+        ChangeNotifierProvider(create: (_) => ContactViewModel()),
       ],
       // O Consumer agora só precisa observar o ThemeViewModel para o tema.
       child: Consumer<ThemeViewModel>(

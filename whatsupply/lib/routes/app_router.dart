@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../viewmodels/auth_view_model.dart';
 import '../views/login_screen.dart';
 import '../views/home_screen.dart';
+import '../views/settings_page.dart';
+import '../views/manage_brands_page.dart';
+import '../views/manage_categories_page.dart';
 
 GoRouter createRouter(AuthViewModel authVM) {
   return GoRouter(
@@ -19,7 +22,26 @@ GoRouter createRouter(AuthViewModel authVM) {
     },
     routes: [
       GoRoute(path: '/login', pageBuilder: (context, state) => const MaterialPage(child: LoginScreen())),
-      GoRoute(path: '/home', pageBuilder: (context, state) => const MaterialPage(child: HomeScreen()),),
+      GoRoute(path: '/home', pageBuilder: (context, state) => const MaterialPage(child: HomeScreen()),
+        routes: [
+          GoRoute(
+            path: 'settings',
+            pageBuilder: (context, state) => const MaterialPage(child: SettingsPage()),
+            routes: [
+              GoRoute(
+                path: 'brands',
+                pageBuilder: (context, state) => const MaterialPage(child: ManageBrandsPage()),
+              ),
+              GoRoute(
+                path: 'categories',
+                pageBuilder: (context, state) => const MaterialPage(child: ManageCategoriesPage()),
+              ),
+            ],
+          ),
+        ],
+      ),
     ],
   );
 }
+
+

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:whatsupply/viewmodels/auth_view_model.dart';
+import 'package:go_router/go_router.dart';
 import 'package:whatsupply/viewmodels/navigation_rail_view_model.dart';
 import 'package:whatsupply/viewmodels/navigation_view_model.dart';
-import 'package:whatsupply/viewmodels/theme_view_model.dart';
 import 'package:whatsupply/views/home_page.dart';
 
 import 'contatos_page.dart';
@@ -141,21 +140,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: Icon(
-                            Theme.of(context).brightness == Brightness.dark
-                                ? Icons.light_mode
-                                : Icons.dark_mode,
-                          ),
+                          tooltip: 'Configurações',
+                          icon: const Icon(Icons.settings),
                           onPressed: () {
-                            context.read<ThemeViewModel>().toggleTheme();
-                          },
-                        ),
-                        const SizedBox(height: 8),
-                        IconButton(
-                          tooltip: 'Sair',
-                          icon: const Icon(Icons.logout),
-                          onPressed: () {
-                            context.read<AuthViewModel>().logout();
+                            context.go('/home/settings');
                           },
                         ),
                       ],

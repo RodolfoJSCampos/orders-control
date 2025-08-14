@@ -123,4 +123,24 @@ class ProductViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> deleteProducts(List<String> productIds) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final batch = _firestore.batch();
+      for (final productId in productIds) {
+        batch.delete(_firestore.collection('produtos').doc(productId));
+      }
+      await batch.commit();
+      _products.removeWhere((product) => productIds.contains(product.id));
+    } catch (e) {
+      debugPrint("Erro ao excluir produtos: $e");
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }
